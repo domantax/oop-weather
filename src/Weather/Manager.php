@@ -3,6 +3,7 @@
 namespace Weather;
 
 use Weather\Api\DataProvider;
+use Weather\Api\DbDataRepository;
 use Weather\Api\DbWeatherRepository;
 use Weather\Api\GoogleApi;
 use Weather\Model\Weather;
@@ -14,38 +15,57 @@ class Manager
      */
     private $transporter;
 
-    public function getTodayInfo(string $dataSource): Weather
+    public function __construct($dataSource)
     {
-        return $this->getTransporter($dataSource)->selectByDate(new \DateTime(), $dataSource);
+        $this->transporter = $this->getTransporter($dataSource);
     }
 
-    public function getWeekInfo(string $dataSource): array
+    /**
+     * @return \Weather\Model\Weather
+     * @throws \Exception
+     */
+    public function getTodayInfo(): Weather
     {
-        return $this->getTransporter($dataSource)->selectByRange(new \DateTime('midnight'), new \DateTime('+6 days midnight'));
+        return $this->transporter->selectByDate(new \DateTime());
     }
 
+    /**
+     * @return array
+     * @throws \Exception
+     */
+    public function getWeekInfo(): array
+    {
+        return $this->transporter->selectByRange(new \DateTime('midnight'),
+            new \DateTime('+6 days midnight'));
+    }
+
+    /**
+     * @param string $dataSource
+     *
+     * @return \Weather\Api\DataProvider
+     */
     private function getTransporter(string $dataSource): DataProvider
     {
-
-        switch($dataSource) {
+        switch ($dataSource) {
             case 'dbData':
+                if (null === $this->transporter || get_class($this->transporter) !== 'DbRepository') {
+                    $dataTransporter = new DbDataRepository();
+                }
+                break;
             case 'dbWeather':
                 if (null === $this->transporter || get_class($this->transporter) !== 'DbRepository') {
-                    $this->transporter = new DbWeatherRepository();
+                    $dataTransporter = new DbWeatherRepository();
                 }
                 break;
             case 'googleApi':
                 if (null === $this->transporter || get_class($this->transporter) !== 'GoogleApi') {
-                    $this->transporter = new GoogleApi();
+                    $dataTransporter = new GoogleApi();
                 }
                 break;
         }
 
-        return $this->transporter;
-
-//        var_dump($this->transporter);
+        return $dataTransporter;
     }
-
 }
 
 

@@ -9,17 +9,16 @@ use Weather\Model\Weather;
 
 abstract class AbstractDb implements DataProvider
 {
+    protected $db;
+
     /**
      * @param \DateTime $date
+     *
      * @return Weather
      */
-    public function selectByDate(\DateTime $date, string $dataSource = 'dbData'): Weather
+    public function selectByDate(\DateTime $date): Weather
     {
-        if ($dataSource === 'dbData') {
-            $items = $this->selectAll();
-        } elseif ($dataSource === 'dbWeather') {
-            $items = $this->selectAllFromWeatherDb();
-        }
+        $items = $this->selectAll();
         $result = new NullWeather();
 
         foreach ($items as $item) {
@@ -31,6 +30,12 @@ abstract class AbstractDb implements DataProvider
         return $result;
     }
 
+    /**
+     * @param \DateTime $from
+     * @param \DateTime $to
+     *
+     * @return array
+     */
     public function selectByRange(\DateTime $from, \DateTime $to): array
     {
         $items = $this->selectAll();
@@ -48,22 +53,5 @@ abstract class AbstractDb implements DataProvider
     /**
      * @return Weather[]
      */
-    private function selectAll(): array
-    {
-        $result = [];
-        $data = json_decode(
-            file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'Db' . DIRECTORY_SEPARATOR . 'Data.json'),
-            true
-        );
-        foreach ($data as $item) {
-            $record = new Weather();
-            $record->setDate(new \DateTime($item['date']));
-            $record->setDayTemp($item['dayTemp']);
-            $record->setNightTemp($item['nightTemp']);
-            $record->setSky($item['sky']);
-            $result[] = $record;
-        }
-
-        return $result;
-    }
+    abstract protected function selectAll(): array;
 }
