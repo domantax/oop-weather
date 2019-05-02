@@ -1,19 +1,25 @@
 <?php
 
+
 namespace Weather\Api;
+
 
 use Weather\Model\NullWeather;
 use Weather\Model\Weather;
 
-class DbRepository implements DataProvider
+abstract class AbstractDb implements DataProvider
 {
     /**
      * @param \DateTime $date
      * @return Weather
      */
-    public function selectByDate(\DateTime $date): Weather
+    public function selectByDate(\DateTime $date, string $dataSource = 'dbData'): Weather
     {
-        $items = $this->selectAll();
+        if ($dataSource === 'dbData') {
+            $items = $this->selectAll();
+        } elseif ($dataSource === 'dbWeather') {
+            $items = $this->selectAllFromWeatherDb();
+        }
         $result = new NullWeather();
 
         foreach ($items as $item) {

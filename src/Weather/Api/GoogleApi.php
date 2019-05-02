@@ -5,19 +5,43 @@ namespace Weather\Api;
 use Weather\Model\NullWeather;
 use Weather\Model\Weather;
 
-class GoogleApi
+class GoogleApi implements DataProvider
 {
     /**
      * @return Weather
      * @throws \Exception
      */
-    public function getToday()
+    public function selectByDate(\DateTime $date): Weather
     {
-        $today = $this->load(new NullWeather());
-        $today->setDate(new \DateTime());
+        $dayWeather = $this->load(new NullWeather());
+        $dayWeather->setDate(new \DateTime());
 
-        return $today;
+        return $dayWeather;
     }
+
+    public function selectByRange(\DateTime $from, \DateTime $to): array
+    {
+        $result = [];
+
+
+
+//        var_dump($end);
+        $end = $to->modify('+1 day');
+
+        $interval = new \DateInterval('P1D');
+
+        $daterange = new \DatePeriod($from, $interval ,$end);
+
+        foreach($daterange as $date){
+
+            $dayWeather = $this->load(new NullWeather());
+            $dayWeather->setDate($date);
+            $result[] = $dayWeather;
+        }
+
+        return $result;
+    }
+
 
     /**
      * @param Weather $before
