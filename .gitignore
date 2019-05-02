@@ -1,2 +1,5 @@
 vendor/
 cache/
+.htaccess
+.idea
+.DS_Store
